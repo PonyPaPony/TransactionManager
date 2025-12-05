@@ -174,9 +174,10 @@ class ConsoleApp:
                 # Проверяем дату валидатором
                 is_valid, error_msg = Validators.check_date(date_str)
 
-                if not is_valid:
+                if is_valid:
+                    break
+                else:
                     print(f"❌ Ошибка: {error_msg}")
-                    continue
 
             # 4. Ввод КОММЕНТАРИЯ
             comment = input("Комментарий: ").strip()
