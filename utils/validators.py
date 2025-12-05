@@ -5,13 +5,16 @@ class Validators:
     @staticmethod
     def check_amount(amount: float):
         if amount <= 0:
-            print("Сумма должна быть больше 0")
             raise ValueError
 
     @staticmethod
-    def check_date(date: str):
+    def check_date(date_text: str):
         try:
-            datetime.strptime(date, "%Y-%m-%d")
+            dt = datetime.strptime(date_text, "%Y-%m-%d")
+
+            if dt.date() > datetime.now().date():
+                print("Дата в будущем?")
+                return False
             return True
         except ValueError:
             return False

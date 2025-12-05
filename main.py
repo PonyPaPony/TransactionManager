@@ -26,36 +26,9 @@ class ConsoleApp:
                 elif choice == "2":
                     self.process_transaction("expense")
                 elif choice == "3":
-                    print("\n1. Все транзакции")
-                    print("2. За сегодня")
-                    print("3. За эту неделю")
-                    print("4. За этот месяц")
-                    filter_choice = input("Выберите фильтр: ")
-
-                    transactions = []
-                    if filter_choice == "1":
-                        transactions = self.manager.get_all_transactions()
-                    elif filter_choice == "2":
-                        transactions = self.manager.get_filtered_transactions("today")
-                    elif filter_choice == "3":
-                        transactions = self.manager.get_filtered_transactions("week")
-                    elif filter_choice == "4":
-                        transactions = self.manager.get_filtered_transactions("month")
-
-                    print("--Финансовый отчет--")
-                    if not transactions:
-                        print("Записей не найдено.")
-                    for tx in transactions:
-                        print(tx)
+                    self.review_menu()
                 elif choice == "4":
-                    stats = self.manager.calculate_stats()
-                    print("\n--- Статистика ---")
-                    print(f"Общий доход: {stats['total_income']}")
-                    print(f"Общий расход: {stats['total_expense']}")
-                    print(f"Баланс: {stats['balance']}")
-                    print("Расходы по категориям:")
-                    for cat, summ in stats['categories'].items():
-                        print(f" - {cat}: {summ}")
+                    self.calculate_menu()
                 elif choice == "5":
                     print("Всего доброго!")
                     break
@@ -64,20 +37,66 @@ class ConsoleApp:
             except ValueError:
                 print("Ошибка ввода.")
 
+    def review_menu(self):
+        print("\n1. Все транзакции")
+        print("2. За сегодня")
+        print("3. За эту неделю")
+        print("4. За этот месяц")
+        filter_choice = input("Выберите фильтр: ")
+
+        transactions = []
+        if filter_choice == "1":
+            transactions = self.manager.get_all_transactions()
+        elif filter_choice == "2":
+            transactions = self.manager.get_filtered_transactions("today")
+        elif filter_choice == "3":
+            transactions = self.manager.get_filtered_transactions("week")
+        elif filter_choice == "4":
+            transactions = self.manager.get_filtered_transactions("month")
+
+        print("--Финансовый отчет--")
+        if not transactions:
+            print("Записей не найдено.")
+        for tx in transactions:
+            print(tx)
+
+    def calculate_menu(self):
+        stats = self.manager.calculate_stats()
+        print("\n--- Статистика ---")
+        print(f"Общий доход: {stats['total_income']}")
+        print(f"Общий расход: {stats['total_expense']}")
+        print(f"Баланс: {stats['balance']}")
+        print("Расходы по категориям:")
+        for cat, summ in stats['categories'].items():
+            print(f" - {cat}: {summ}")
+
     def process_transaction(self, t_type):
         while True:
             print(f"\n--- Добавление: {t_type} ---")
+            print("(Введите 'q' или 'отмена' в любой момент для возврата в меню)")
+
             try:
-                amount_str = input("Введите сумму: ")
+                amount_str = input("Введите сумму: ").strip()
+                if amount_str.lower() in ['q', 'cancel', 'отмена']:
+                    print("🔙 Ввод отменен.")
+                    return
+
                 amount = float(amount_str)
                 self.validators.check_amount(amount)
 
                 category = input("Укажите категорию: ").strip()
+                if category.lower() in ['q', 'отмена', 'cancel']:
+                    print("🔙 Ввод отменен.")
+
                 if not category:
                     print("Категория не может быть пустой")
                     continue
 
                 dt_input = input("Введите дату (YYYY-MM-DD) или Enter для сегодня: ").strip()
+                if dt_input.lower() in ['q', 'отмена', 'cancel']:
+                    print("🔙 Ввод отменен.")
+                    return
+
                 if not dt_input or dt_input == "0":
                     date_str = datetime.now().strftime("%Y-%m-%d")
                 else:
@@ -87,6 +106,9 @@ class ConsoleApp:
                         continue
 
                 comment = input("Комментарий: ").strip()
+                if comment.lower() in ['q', 'отмена', 'cancel']:
+                    print("🔙 Ввод отменен.")
+
                 if not comment:
                     comment = None
 
