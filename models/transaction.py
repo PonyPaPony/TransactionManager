@@ -1,3 +1,7 @@
+from datetime import datetime
+from utils.validators import Validators
+
+
 class Transaction:
     def __init__(self, t_type: str, amount: float, category: str, date: str, comment: str = None):
         """
@@ -8,6 +12,15 @@ class Transaction:
         :param date: Дата в формате 'YYYY-MM-DD'
         :param comment: Комментарий (может быть None)
         """
+        Validators.check_amount(amount)
+
+        is_valid_date, date_error = Validators.check_date(date)
+        if not is_valid_date:
+            raise ValueError(f"Некорректная дата: {date_error}")
+
+        if t_type not in ['income', 'expense']:
+            raise ValueError("Тип должен быть 'income' или 'expense'")
+
         self.type = t_type
         self.amount = amount
         self.category = category
@@ -41,9 +54,31 @@ class Transaction:
 
     def __str__(self):
         """
-        Красивый вывод для отладки (не для пользователя).
+        Красивый вывод для пользователя.
+        Пример: [12-05] 💰 Доход +12 500₽ | Категория: Зарплата
         """
-        return f"{self.date} | {self.type} | {self.amount} | {self.category}"
+        try:
+            dt_obj = datetime.strptime(self.date, "%Y-%m-%d")
+            date_str = dt_obj.strftime("%d-%m")
+        except ValueError:
+            date_str = self.date
+
+        if self.type == 'income':
+            icon = "💰"
+            type_name = "Доход"
+            sign = "+"
+        else:
+            icon = "💸"
+            type_name = "Расход"
+            sign = "-"
+
+        amount_str = f"{self.amount:,.2f}".replace(",", " ").replace(".", ",")
+        result = f"[{date_str}] {icon} {type_name} {sign}{amount_str}$ | Категория: {self.category}"
+
+        if self.comment:
+            result += f" | Коммент: {self.comment}"
+
+        return result
 
     def __lt__(self, other):
         return self.date < other.date

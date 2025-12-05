@@ -1,5 +1,8 @@
 import json
 import os
+from typing import List, Any
+import logging
+import shutil
 
 
 class FileManager:
@@ -11,16 +14,25 @@ class FileManager:
         os.makedirs(os.path.dirname(self.file_path), exist_ok=True)
         if not os.path.exists(self.file_path):
             with open(self.file_path, "w") as f:
-                f.write("[]")
+                json.dump([], f)
 
-    def write_data(self, data):
-        with open(self.file_path, "w", encoding='utf-8') as f:
+    def write_data(self, data: List[dict]) -> None:
+        temp_file = self.file_path + ".tmp"
+        with open(temp_file, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False)
-            f.write("\n")
 
-    def read_data(self):
+        os.replace(temp_file, self.file_path)
+
+    def read_data(self) -> List[dict]:
         try:
             with open(self.file_path, "r", encoding='utf-8') as f:
                 return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
+
+        except FileNotFoundError:
+            return []
+
+        except json.JSONDecodeError:
+            logging.warning("transactions.json corrupted, resetting it")
+            shutil.copy(self.file_path, self.file_path + ".bak")
+            self.write_data([])
             return []
