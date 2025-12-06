@@ -126,67 +126,25 @@ class ConsoleApp:
         input("\nНажмите Enter, чтобы вернуться в меню...")
 
     def process_transaction(self, t_type):
+        cancel_msg = "🔙 Ввод отменен."
+        choice_msg = ['q', 'cancel', 'отмена']
+
         while True:
             print(f"\n--- Добавление: {t_type} ---")
             print("(Введите 'q' или 'отмена' в любой момент для возврата в меню)")
 
-            # Убираем общий try, чтобы обрабатывать этапы точечно
+            amount = self.amount_menu(cancel_msg, choice_msg)
+            if amount is None: return
 
-            # 1. Ввод СУММЫ
-            while True:
-                amount_str = input("Введите сумму: ").strip()
-                if amount_str.lower() in ['q', 'cancel', 'отмена']:
-                    print("🔙 Ввод отменен.")
-                    return
+            category = self.category_menu(cancel_msg, choice_msg)
+            if category is None: return
 
-                try:
-                    amount = float(amount_str)
-                    # Проверка бизнес-правил (сумма > 0)
-                    Validators.check_amount(amount)
-                    break  # Если всё ок - идем дальше
-                except ValueError:
-                    # Этот блок поймает и ошибку конвертации float, и ошибку от Validators
-                    print("❌ Ошибка: Введите корректное положительное число.")
+            date_str = self.date_menu(cancel_msg, choice_msg)
+            if date_str is None: return
 
-            # 2. Ввод КАТЕГОРИИ
-            while True:
-                category = input("Укажите категорию: ").strip()
-                if category.lower() in ['q', 'отмена', 'cancel']:
-                    print("🔙 Ввод отменен.")
-                    return
-
-                if category:
-                    break
-                print("❌ Категория не может быть пустой")
-
-            # 3. Ввод ДАТЫ
-            while True:
-                dt_input = input("Введите дату (YYYY-MM-DD) или Enter для сегодня: ").strip()
-                if dt_input.lower() in ['q', 'отмена', 'cancel']:
-                    print("🔙 Ввод отменен.")
-                    return
-
-                if not dt_input or dt_input == "0":
-                    date_str = datetime.now().strftime("%Y-%m-%d")
-                else:
-                    date_str = dt_input
-
-                # Проверяем дату валидатором
-                is_valid, error_msg = Validators.check_date(date_str)
-
-                if is_valid:
-                    break
-                else:
-                    print(f"❌ Ошибка: {error_msg}")
-
-            # 4. Ввод КОММЕНТАРИЯ
-            comment = input("Комментарий: ").strip()
-            if comment.lower() in ['q', 'отмена', 'cancel']:
-                print("🔙 Ввод отменен.")
+            comment = self.comment_menu(cancel_msg, choice_msg)
+            if comment == 'CANCEL_ACTION':
                 return
-
-            if not comment:
-                comment = None
 
             # 5. СОЗДАНИЕ ТРАНЗАКЦИИ
             try:
@@ -208,6 +166,65 @@ class ConsoleApp:
 
             except ValueError as e:
                 print(f"❌ Системная ошибка валидации: {e}")
+
+    def amount_menu(self, cancel_msg, choice_msg):
+        while True:
+            amount_str = input("Введите сумму: ").strip()
+            if amount_str.lower() in choice_msg:
+                print(cancel_msg)
+                return None
+
+            try:
+                amount = float(amount_str)
+                # Проверка бизнес-правил (сумма > 0)
+                Validators.check_amount(amount)
+                return amount
+            except ValueError:
+                # Этот блок поймает и ошибку конвертации float, и ошибку от Validators
+                print("❌ Ошибка: Введите корректное положительное число.")
+
+    def category_menu(self, cancel_msg, choice_msg):
+        while True:
+            category = input("Укажите категорию: ").strip()
+            if category.lower() in choice_msg:
+                print(cancel_msg)
+                return None
+
+            if category:
+                return category
+            print("❌ Категория не может быть пустой")
+
+    def date_menu(self, cancel_msg, choice_msg):
+        while True:
+            dt_input = input("Введите дату (YYYY-MM-DD) или Enter для сегодня: ").strip()
+            if dt_input.lower() in choice_msg:
+                print(cancel_msg)
+                return None
+
+            if not dt_input or dt_input == "0":
+                date_str = datetime.now().strftime("%Y-%m-%d")
+            else:
+                date_str = dt_input
+
+            # Проверяем дату валидатором
+            is_valid, error_msg = Validators.check_date(date_str)
+
+            if is_valid:
+                return date_str
+            else:
+                print(f"❌ Ошибка: {error_msg}")
+
+    def comment_menu(self, cancel_msg, choice_msg):
+        comment = input("Комментарий: ").strip()
+        if comment.lower() in choice_msg:
+            print(cancel_msg)
+            return 'CANCEL_ACTION'
+
+        if not comment:
+            comment = None
+
+        return comment
+
 
 if __name__ == '__main__':
     app = ConsoleApp()
