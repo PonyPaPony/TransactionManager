@@ -36,6 +36,7 @@ class TransactionManager:
         """
         filtered = []
         today = datetime.today().date()
+        self.transactions = self._load_transactions()
 
         for t in self.transactions:
             t_date = datetime.strptime(t.date, "%Y-%m-%d").date()
