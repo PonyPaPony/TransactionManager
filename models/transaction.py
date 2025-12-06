@@ -81,4 +81,4 @@ class Transaction:
         return result
 
     def __lt__(self, other):
-        return self.date < other.date
+        return datetime.strptime(self.date, "%Y-%m-%d") < datetime.strptime(other.date, "%Y-%m-%d")
